@@ -19,3 +19,11 @@
 브라우저 검증: 괴화 문헌별 용량, 감초 처방 연결, 약재 전환, 북마크 지속, 사진 로드, 모바일 레이아웃. 표준 WebMCP API가 설치된 브라우저에 노출되지 않아 네이티브 도구 호출 검증은 수행할 수 없었다. 화면 기능에는 영향을 주지 않는다.
 
 남은 기원 미확인 8항목: 다엽가루, 다투라, 디기탈리스엽, 디기탈리스엽가루, 로얄젤리, 생로얄젤리, 스코폴리아근, 피마자. 원문 검색의 일부 요청은 HTTP 500 오류를 반환했다. 모약재에서 추론하거나 빈 항목을 허위 정보로 채우지 않았다.
+
+## Korean reading and learning explanations
+
+`translate_details.py` adds `ko` display fields and an explicit `korean-glossary.txt` explanation list; collected `value`, doses, cautions, citations and IDs remain unchanged. Run it after rebuilding source details. The UI shows Korean text, visible explanations for mapped terms, and expandable original wording. Unmapped specialist terms retain a Korean reading rather than an invented definition. Glossary matching respects term boundaries (e.g. 回陽救逆 must not match 嘔逆).
+
+Character readings are derived from Unicode 17.0.0 Unihan kHangul, preferring source-provided whole-word Hangul and explicit terminology overrides. Unihan is a pronunciation aid, not a medical translation source. The included subset is `korean-readings.json`; redistribution terms are in `dist/unicode-license.txt`. https://www.unicode.org/reports/tr38/
+
+`validate_korean.py` compares original fields to the pre-translation revision and checks numeric doses, Korean display coverage and sensitive homographs. These checks are not expert medical review; the app retains its original review status.
