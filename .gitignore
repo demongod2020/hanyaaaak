@@ -3,3 +3,5 @@ nifds-list.html
 *.tar.gz
 qa*
 .sites-runtime/
+/*.html
+__pycache__/
