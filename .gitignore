@@ -26,3 +26,5 @@ _diag/
 .credentials*
 .service
 .path
+node_modules/
+artifacts/

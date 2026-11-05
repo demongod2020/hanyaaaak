@@ -21,7 +21,7 @@ jobs:
       github.event.workflow_run.head_repository.full_name == github.repository &&
       (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch')
     runs-on: [self-hosted, Windows, X64]
-    timeout-minutes: 15
+    timeout-minutes: 35
     defaults:
       run:
         shell: powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -File "{0}"
@@ -31,6 +31,25 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           persist-credentials: false
+
+      - name: Set up Python for independent observation
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up fixed browser test runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pinned browser and initialize evidence directory
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Path artifacts -Force | Out-Null
+          npm.cmd ci --prefix ops/browser
+          if ($LASTEXITCODE -ne 0) { throw 'Browser dependency installation failed' }
+          & ops/browser/node_modules/.bin/playwright.cmd install chromium
+          if ($LASTEXITCODE -ne 0) { throw 'Chromium installation failed' }
 
       - name: Locate Docker and check Linux engine
         run: |
@@ -77,9 +96,29 @@ jobs:
           if ($env:DOCKERHUB_USERNAME -notmatch '^[a-z0-9][a-z0-9_-]*$') { throw 'Invalid Docker Hub username secret.' }
           if ($env:IMAGE_SHA -notmatch '^[a-f0-9]{40}$') { throw 'Invalid published commit SHA.' }
           $image = "$env:DOCKERHUB_USERNAME/bonchorok:sha-$env:IMAGE_SHA"
-          & ./scripts/deploy-local.ps1 -Image $image
+          $env:PYTHONUTF8 = '1'
+          python ops/validate_deploy.py --image $image --sha $env:IMAGE_SHA --out artifacts/deployment
           if ($LASTEXITCODE -ne 0) { throw 'Deployment failed.' }
-          "Deployed $image at http://127.0.0.1:8000" | Out-File $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+
+      - name: Write one-screen validation summary
+        if: always()
+        run: |
+          New-Item -ItemType Directory -Path artifacts/deployment -Force | Out-Null
+          if (Test-Path artifacts/deployment/summary.md) {
+            Get-Content artifacts/deployment/summary.md -Raw -Encoding UTF8 | Out-File $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          } else {
+            'Validation unavailable: execution stopped before evidence collection. No availability or performance claim is supported.' | Out-File artifacts/deployment/summary.md -Encoding utf8
+            Get-Content artifacts/deployment/summary.md -Raw -Encoding UTF8 | Out-File $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          }
+
+      - name: Upload measurements and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/deployment/
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Remove temporary registry credentials
         if: always()

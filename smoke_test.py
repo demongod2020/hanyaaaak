@@ -1,5 +1,6 @@
 """Run against a live local server; no additional testing packages required."""
 import json
+import os
 from urllib.error import HTTPError
 from urllib.request import urlopen
 
@@ -12,9 +13,11 @@ def get(path):
         return response.read()
 
 
-assert json.loads(get("/api/health")) == {
+health = json.loads(get("/api/health"))
+assert {k: health[k] for k in ('status', 'service', 'herb_count')} == {
     "status": "ok", "service": "bonchorok", "herb_count": 601
 }
+assert health['deployment_sha'] == os.environ.get('DEPLOYMENT_SHA', 'unknown')
 records = json.loads(get("/herbs.json"))
 assert len(records) == 601
 assert len({r["id"] for r in records}) == len(records)

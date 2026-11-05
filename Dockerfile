@@ -1,4 +1,7 @@
 FROM python:3.12-slim-bookworm
+ARG GIT_SHA=unknown
+ENV DEPLOYMENT_SHA=$GIT_SHA
+LABEL org.opencontainers.image.revision=$GIT_SHA
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -21,7 +24,7 @@ USER 10001:10001
 
 # Bonchorok has no ML model: verify its actual data and FastAPI entry point.
 # A broken catalog or a missing runtime asset must fail the image build.
-RUN python -c "import main; from pathlib import Path; assert main.health() == {'status': 'ok', 'service': 'bonchorok', 'herb_count': 601}; assert len({r['id'] for r in main.catalog}) == 601; assert any(r['id'] == 'sophorae-flos' for r in main.catalog); assert all((Path('dist') / f).is_file() for f in ['index.html', 'app-v2.js', 'details.js', 'style.css', 'sophora-plant.jpg']); print('PASS: FastAPI import, 601 unique herbs and runtime assets')"
+RUN python -c "import main; from pathlib import Path; assert main.health()['herb_count'] == 601; assert main.health()['deployment_sha'] == main.DEPLOYMENT_SHA; assert len({r['id'] for r in main.catalog}) == 601; assert any(r['id'] == 'sophorae-flos' for r in main.catalog); assert all((Path('dist') / f).is_file() for f in ['index.html', 'app-v2.js', 'details.js', 'style.css', 'sophora-plant.jpg']); print('PASS: FastAPI import, version, 601 unique herbs and runtime assets')"
 
 EXPOSE 8000
 

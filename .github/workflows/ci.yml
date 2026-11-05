@@ -27,7 +27,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build image and validate catalog loading
-        run: docker build --pull --tag "$LOCAL_IMAGE" .
+        run: |
+          mkdir -p artifacts/ci
+          set -o pipefail
+          docker build --pull --build-arg GIT_SHA="$GITHUB_SHA" --tag "$LOCAL_IMAGE" . 2>&1 | tee artifacts/ci/build.log
 
       - name: Start container and wait for health check
         shell: bash
@@ -52,8 +55,9 @@ jobs:
 
       - name: Test HTTP endpoints and public port
         run: |
-          docker exec "$CONTAINER_NAME" python smoke_test.py
-          curl --fail --silent --show-error http://127.0.0.1:8000/api/health
+          set -o pipefail
+          docker exec "$CONTAINER_NAME" python smoke_test.py 2>&1 | tee artifacts/ci/smoke.log
+          curl --fail --silent --show-error http://127.0.0.1:8000/api/health | tee artifacts/ci/health.json
 
       # Pull requests (including forks) never receive Docker Hub credentials.
       - name: Validate publishing configuration
@@ -103,7 +107,19 @@ jobs:
 
       - name: Print container logs
         if: always()
-        run: docker logs "$CONTAINER_NAME" 2>&1 || true
+        run: |
+          mkdir -p artifacts/ci
+          docker logs "$CONTAINER_NAME" > artifacts/ci/container.log 2>&1 || true
+          docker inspect "$CONTAINER_NAME" > artifacts/ci/container.json 2>&1 || true
+
+      - name: Upload CI evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/ci/
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Remove test container
         if: always()
