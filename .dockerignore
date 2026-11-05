@@ -1,0 +1,33 @@
+# Allow only runtime inputs and the existing HTTP smoke test.
+# This excludes .git, virtual environments, HW/HW3, tmp, reports, and credentials.
+**
+!Dockerfile
+!.dockerignore
+!requirements.txt
+!main.py
+!smoke_test.py
+!dist/
+!dist/**
+
+# Also exclude accidental private or temporary files within dist.
+**/.git
+**/.git/**
+**/.env
+**/.env.*
+**/.aws/**
+**/.ssh/**
+**/.docker/**
+**/.venv/**
+**/__pycache__/**
+**/node_modules/**
+**/*.pyc
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/credentials*
+**/*secret*
+**/*.log
+**/*.tmp
+**/.DS_Store
+**/Thumbs.db

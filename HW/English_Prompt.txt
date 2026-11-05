@@ -1,0 +1,31 @@
+Reconstructed example prompt for Bonchorok
+
+Project goal
+Act as a web developer and help me prepare Bonchorok, a Korean herbal medicine reference app, for a university software development assignment. Reuse the existing project and data. The app is for learning and reference; it must not present its content as a diagnosis or a personalized treatment recommendation.
+
+1 Platform and existing assets
+Use HTML, CSS, and JavaScript for the existing frontend, and Python with FastAPI and Uvicorn for local serving on Windows. Preserve the existing dist directory and the 601 records in herbs.json. Do not introduce a database server or an AI model unless a feature actually requires it.
+
+2 Content and source handling
+Use the existing verified records and references from the National Institute of Food and Drug Safety Evaluation, the Korea Pharmaceutical Information Center, and KIOM OASIS. Preserve source links and original text. Explain Chinese medical terms in understandable Korean without changing their meaning. Do not invent missing medical claims, dosages, review dates, reviewer names, or images. Clearly mark unavailable information and distinguish traditional descriptions from established clinical evidence.
+
+3 Interface and navigation
+Follow the supplied reference with a warm cream background, muted green accents, readable typography, and rounded panels. Provide a searchable herb list and a detail view. Show the Korean name, English name, Latin drug name, representative image when available, and a short summary. Organize details into basic information, traditional effects and indications, usage and dosage, cautions, related formulas, images, and references. Include a table of contents, a back action, and source links.
+
+4 Search and bookmarks
+Support searches across available Korean, Chinese, English, Latin, plant-name, and alias fields. Keep a stable herb identifier in the URL so a detail page can be reopened. Store bookmarks in localStorage and preserve them after a reload. Explain that bookmarks belong to the current browser and origin. Provide useful empty states and make the layout usable on both desktop and mobile screens.
+
+5 Local FastAPI server
+Create main.py and serve the frontend at http://127.0.0.1:8000. Mount only the dist directory as static content. Add GET /api/health with a status value, service name, and the loaded herb count. Keep the generated API documentation available at /docs. Ensure requests for source files, dependency files, and Git metadata are not served as public website assets.
+
+6 Reproducible setup
+Provide requirements.txt with the tested dependency versions and a README explaining the project purpose, directory structure, sources, installation, startup, shutdown, and verification steps. Use a Python virtual environment. Include a Windows launcher when helpful, but keep the manual commands documented. Do not include virtual environments, credentials, or machine-specific secrets in version control.
+
+7 Verification
+Provide a lightweight smoke test that sends real HTTP requests to the running server. Check the health response, herb data, required frontend assets, API documentation, and rejection of internal-file requests. Separately verify search, detail navigation, bookmark persistence, and a narrow mobile layout in a browser. Report the checks actually executed and their results; do not describe an unexecuted test as passed.
+
+8 Assignment deliverables
+Create an HW folder containing a runnable copy of the application, setup documentation, verification evidence, and a Word report. In the report, explain the prompt, how the application produces its results, and how development connects with operation. Include an actual application screenshot. Identify any newly reconstructed prompt as an example rather than an original historical conversation log.
+
+9 DevOps scope and reporting
+Describe version control, reproducible setup, verification, deployment evidence, and operational checks using facts from this project. Distinguish the existing static Vercel deployment from the locally added FastAPI server. Do not claim that FastAPI is deployed online or that a GitHub Actions pipeline exists without evidence. Present automated CI checks, post-deployment health checks, alerts, and rollback procedures as future improvements when they are not implemented. Summarize completed work and remaining limitations accurately.

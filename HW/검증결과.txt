@@ -1,0 +1,25 @@
+﻿본초록 FastAPI 검증 결과
+확인일: 2026-11-02
+
+실행 주소: http://127.0.0.1:8000
+실행 파일: HW/main.py
+Python 3.12 / FastAPI 0.162.0 / Uvicorn 0.54.0
+
+HTTP 검사: 통과
+- 상태 API status=ok, herb_count=601
+- 약재 ID 중복 없음
+- HTML, JavaScript, CSS, 이미지 응답 정상
+- FastAPI OpenAPI 및 docs 응답 정상
+- 프로젝트 내부 파일 요청 404
+
+실제 브라우저 검사: 통과
+- 601개 목록과 감초 검색·상세 화면 확인
+- 북마크 저장 후 새로고침 유지
+- 모바일 390px에서 가로 넘침 없음
+- JavaScript pageerror 0건
+
+Word 설명 문서: 1쪽, Word 렌더링 후 내용과 레이아웃 확인
+GitHub push 및 원격 재배포: 이번 작업에서는 수행하지 않음
+
+재실행: HW/run.cmd 더블클릭
+서버 중지: 실행 콘솔에서 Ctrl+C

@@ -1,0 +1,10 @@
+*.html.tmp
+nifds-list.html
+*.tar.gz
+qa*
+.sites-runtime/
+/*.html
+__pycache__/
+.venv/
+**/.venv/
+*.pyc

@@ -5,3 +5,16 @@ qa*
 .sites-runtime/
 /*.html
 __pycache__/
+.venv/
+**/.venv/
+*.pyc
+/tmp/
+.env
+.env.*
+.aws/
+.ssh/
+.docker/
+*.pem
+*.key
+*.p12
+*.pfx
