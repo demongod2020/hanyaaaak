@@ -18,3 +18,11 @@ __pycache__/
 *.key
 *.p12
 *.pfx
+actions-runner/
+**/actions-runner/
+_work/
+_diag/
+.runner
+.credentials*
+.service
+.path
