@@ -33,11 +33,26 @@ jobs:
           persist-credentials: false
 
       - name: Set up Python for independent observation
-        uses: actions/setup-python@v5
-        env:
-          PSExecutionPolicyPreference: RemoteSigned
-        with:
-          python-version: '3.12'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Path artifacts/deployment -Force | Out-Null
+          $runtime = Join-Path $env:RUNNER_TOOL_CACHE 'PythonEmbed/3.12.10/x64'
+          $archive = Join-Path $env:RUNNER_TEMP 'python-3.12.10-embed-amd64.zip'
+          try {
+            Invoke-WebRequest -UseBasicParsing 'https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip' -OutFile $archive
+            $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $archive).Hash
+            if ($hash -ne '4ACBED6DD1C744B0376E3B1CF57CE906F9DC9E95E68824584C8099A63025A3C3') { throw 'Python runtime checksum mismatch' }
+            New-Item -ItemType Directory -Path $runtime -Force | Out-Null
+            Expand-Archive -LiteralPath $archive -DestinationPath $runtime -Force
+            $paths = "python312.zip`n.`n$env:GITHUB_WORKSPACE\ops`n"
+            [IO.File]::WriteAllText((Join-Path $runtime 'python312._pth'), $paths, (New-Object Text.UTF8Encoding($false)))
+            $runtime | Out-File $env:GITHUB_PATH -Encoding utf8 -Append
+            & (Join-Path $runtime 'python.exe') -c "import ssl, subprocess, monitor, deploy; print('Python runtime imports OK')" | Out-File artifacts/deployment/runtime.log -Encoding utf8
+            if ($LASTEXITCODE -ne 0) { throw 'Python runtime import check failed' }
+          } catch {
+            $_ | Out-String | Out-File artifacts/deployment/runtime-failure.log -Encoding utf8
+            throw
+          }
 
       - name: Set up fixed browser test runtime
         uses: actions/setup-node@v4
