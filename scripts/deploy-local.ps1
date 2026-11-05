@@ -9,9 +9,11 @@ $backup = "$name-previous"
 $label = 'io.bonchorok.managed'
 
 function Docker {
-    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Arguments)
-    $output = & docker.exe @Arguments
-    if ($LASTEXITCODE -ne 0) { throw "Docker command failed: $($Arguments[0]) (exit $LASTEXITCODE)" }
+    # A simple function preserves CLI flags such as -a instead of binding them
+    # as abbreviations of a PowerShell parameter named Arguments.
+    $dockerArgs = $args
+    $output = & docker.exe @dockerArgs
+    if ($LASTEXITCODE -ne 0) { throw "Docker command failed: $($dockerArgs[0]) (exit $LASTEXITCODE)" }
     return $output
 }
 function Inspect-Container([string]$Container) {
