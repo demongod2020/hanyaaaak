@@ -63,6 +63,7 @@ def create(out):
             'failed_monitor_requests':sum(not r.get('ok',False) for r in monitor),'monitor_samples':len(monitor),
             'max_record_gap_ms':max_record_gap,
             'limits':['Sampling cannot prove continuous availability. Every gap between completed request and next start is unverified.',
+                      'HTTP elapsed_ms includes body download, decompression, hashing and content validation; transport-only latency was not measured.',
                       'Timeouts and scheduling delays enlarge actual sample intervals; no synthetic observations are inserted.',
                       'Legacy responses without SHA are unknown, not inferred from image tags.',
                       'Cold browser contexts, same Chromium/data/proxy/CPU limits and alternating batches; OS cache and unrelated host load are uncontrolled.',
@@ -82,7 +83,7 @@ def create(out):
         lines.append(f"| {title} | {a['p50_ms']} / {a['p95_ms']} | {b['p50_ms']} / {b['p95_ms']} | {a['failure_rate']} / {b['failure_rate']} |")
     for p in metrics['before']['http']:
         a,b=metrics['before']['http'][p],metrics['after']['http'][p]
-        lines.append(f"| HTTP {p} | {a['p50_ms']} / {a['p95_ms']} | {b['p50_ms']} / {b['p95_ms']} | {a['failure_rate']} / {b['failure_rate']} |")
+        lines.append(f"| HTTP+내용검증 {p} | {a['p50_ms']} / {a['p95_ms']} | {b['p50_ms']} / {b['p95_ms']} | {a['failure_rate']} / {b['failure_rate']} |")
     lines+=['','**관측된 응답 버전 전환**']+[f"- {t['at']}: `{t['version'] or 'unknown (SHA 없는 기존 응답)'}`" for t in transitions]
     lines+=['','| 모니터 경로 | 실제 간격 p50 / 최대 (ms) | 최대 미관측 공백 (ms) | 실패 |','|---|---:|---:|---:|']
     for p,g in gaps.items():
