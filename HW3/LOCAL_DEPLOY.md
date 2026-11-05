@@ -5,6 +5,8 @@
 등록된 Runner: XANWALL, Windows x64, 이 GitHub 저장소에 연결되어 실행 중인 Runner 2.338.2.
 Docker Desktop은 사용자별 설치 경로인 `%LOCALAPPDATA%\Programs\DockerDesktop`에 있으며 Linux 엔진을 사용한다. 이번 확인에서 Docker Engine 29.9.2가 응답했다. 추가 Python 설치나 GPU 모델 설치는 필요하지 않다.
 
+Runner의 기본 Windows PowerShell 정책으로 스크립트가 차단되는 현상이 실제 첫 실행 로그에서 확인되어, 워크플로의 PowerShell 프로세스에만 RemoteSigned를 지정했다. PC 전체 또는 사용자 전체의 실행 정책은 변경하지 않는다.
+
 ## 동작
 
 `.github/workflows/deploy.yml`은 master의 Bonchorok Docker CI가 성공적으로 끝났을 때 실행한다. 같은 저장소의 push 또는 수동 CI 실행만 허용하며 Pull Request 코드를 로컬 Runner에서 실행하지 않는다. 배포 중 취소로 서비스가 중단되지 않도록 배포 작업은 순서대로 실행한다.
