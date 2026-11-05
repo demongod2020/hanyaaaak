@@ -35,7 +35,8 @@ class Deployment:
 
     def info(self, name):
         result = self.docker('inspect', name, check=False)
-        return json.loads(result)[0] if result else None
+        items = json.loads(result) if result else []
+        return items[0] if items else None
 
     def managed(self, name):
         info = self.info(name)
@@ -44,7 +45,7 @@ class Deployment:
         return info
 
     def ensure_network(self):
-        if not self.docker('network','inspect',self.network,check=False):
+        if self.network not in self.docker('network','ls','--format','{{.Name}}').splitlines():
             self.docker('network','create',self.network)
 
     def backend(self, image, suffix):

@@ -55,9 +55,10 @@ def create(out):
         if not transitions or transitions[-1]['version']!=version:
             transitions.append({'at':row['ended_at'],'version':version})
     fingerprints={r.get('data_sha256') for r in browser if r.get('ok')}
+    complete_comparison=all(sum(r.get('phase')==phase and r.get('ok',False) for r in browser)==20 for phase in ['before','after'])
     record_times=sorted(r.get('recorded_ns',r.get('ended_ns',0)) for r in monitor if r.get('ended_ns'))
     max_record_gap=max([(b-a)/1e6 for a,b in zip(record_times,record_times[1:])],default=None)
-    report={'metrics':metrics,'monitor':gaps,'version_transitions':transitions,'data_identical':len(fingerprints)==1 and bool(browser),
+    report={'metrics':metrics,'monitor':gaps,'version_transitions':transitions,'data_identical':len(fingerprints)==1 if complete_comparison else None,
             'data_fingerprints':sorted(x for x in fingerprints if x),'result':result,
             'failed_monitor_requests':sum(not r.get('ok',False) for r in monitor),'monitor_samples':len(monitor),
             'max_record_gap_ms':max_record_gap,
