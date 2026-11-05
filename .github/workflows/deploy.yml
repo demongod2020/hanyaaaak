@@ -34,6 +34,8 @@ jobs:
 
       - name: Set up Python for independent observation
         uses: actions/setup-python@v5
+        env:
+          PSExecutionPolicyPreference: RemoteSigned
         with:
           python-version: '3.12'
 

@@ -44,27 +44,36 @@ def create(out):
             'max_start_interval_ms':max([r.get('actual_start_interval_ms') or 0 for r in rows],default=None),
             'max_unobserved_gap_ms':max([r.get('unobserved_gap_ms') or 0 for r in rows],default=None),
             'missed_interval_count':sum((r.get('actual_start_interval_ms') or 0)>750 for r in rows)}
+        finished=result.get('deployment_finished_at')
+        if finished and rows:
+            tail=(dt.datetime.fromisoformat(rows[-1]['ended_at'])-dt.datetime.fromisoformat(finished)).total_seconds()
+            gaps[path]['last_sample_seconds_after_deployment']=round(tail,3)
+            gaps[path]['unverified_tail_ms']=round(max(0,result.get('post_observation_seconds',0)-tail)*1000,3)
     transitions=[]
     for row in sorted([r for r in monitor if r.get('path')=='/api/health' and r.get('ok')],key=lambda r:r['started_ns']):
         version=row.get('version')
         if not transitions or transitions[-1]['version']!=version:
             transitions.append({'at':row['ended_at'],'version':version})
     fingerprints={r.get('data_sha256') for r in browser if r.get('ok')}
+    record_times=sorted(r.get('recorded_ns',r.get('ended_ns',0)) for r in monitor if r.get('ended_ns'))
+    max_record_gap=max([(b-a)/1e6 for a,b in zip(record_times,record_times[1:])],default=None)
     report={'metrics':metrics,'monitor':gaps,'version_transitions':transitions,'data_identical':len(fingerprints)==1 and bool(browser),
             'data_fingerprints':sorted(x for x in fingerprints if x),'result':result,
             'failed_monitor_requests':sum(not r.get('ok',False) for r in monitor),'monitor_samples':len(monitor),
+            'max_record_gap_ms':max_record_gap,
             'limits':['Sampling cannot prove continuous availability. Every gap between completed request and next start is unverified.',
                       'Timeouts and scheduling delays enlarge actual sample intervals; no synthetic observations are inserted.',
                       'Legacy responses without SHA are unknown, not inferred from image tags.',
                       'Cold browser contexts, same Chromium/data/proxy/CPU limits and alternating batches; OS cache and unrelated host load are uncontrolled.',
                       'Initial-ready timing includes browser automation round trips and a two-frame UI readiness check; search is input-to-two-animation-frames, not raw CPU duration.',
-                      'p95 uses nearest rank with 20 samples per phase; exploratory local benchmark, not a production load test.',
+                      'p95 uses nearest rank; planned 20 samples per phase, actual counts are reported. Exploratory local benchmark, not a production load test.',
                       'First listener migration can interrupt access. nginx reload reduces subsequent listener gaps but zero downtime is not claimed.',
                       'Forced runner/machine termination can prevent final upload or 30-second observation; missing evidence must be treated as unverified.']}
     (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     lines=['# 본초록 배포 검증','',f"결과: **{result.get('status','검증되지 않음')}** · 모니터 요청 {len(monitor)}건 · 실패 {report['failed_monitor_requests']}건",
            f"복구 시험: **{result.get('rollback',{}).get('verified',False)}** · 동일 데이터: **{report['data_identical']}**",
            f"배포 후 관측: {result.get('post_observation_seconds','미확인')}초 · 모니터 종료 코드: {result.get('monitor_exit','미확인')}",'',
+           f"브라우저 표본 전/후: {metrics['before']['initial_ready']['samples']} / {metrics['after']['initial_ready']['samples']} · 전체 로그 최대 기록 공백: {max_record_gap} ms",'',
            '| 지표 (ms) | 변경 전 p50 / p95 | 변경 후 p50 / p95 | 실패율 전 / 후 |','|---|---:|---:|---:|']
     pairs=[('초기 로딩 → UI 준비','initial_ready'),('검색 입력 → 화면 갱신','search')]
     for title,key in pairs:

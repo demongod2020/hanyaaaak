@@ -79,6 +79,8 @@ def main():
                 row['gap_verified'] = False
                 previous_start, previous_end = row['started_ns'], row['ended_ns']
                 with lock:
+                    row['recorded_at'] = utc()
+                    row['recorded_ns'] = time.perf_counter_ns()
                     log.write(json.dumps(row, ensure_ascii=False) + '\n')
                     log.flush()
                     seen.add(path)
