@@ -24,7 +24,7 @@ jobs:
     timeout-minutes: 15
     defaults:
       run:
-        shell: powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -File {0}
+        shell: powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -File "{0}"
     steps:
       - name: Check out the successfully published revision
         uses: actions/checkout@v4
